@@ -20,6 +20,7 @@ export class TicketForm {
   selectimage: File | null = null;
   ticketResult: any = null;
 
+
   constructor(private ticketSErvice: TicketService){}
 
 
@@ -36,7 +37,7 @@ export class TicketForm {
       this.selectimage = input.files[0]
     }
   }
-
+  isLoading = false;
   onSubmit(){
     const formdata = new FormData();
 
@@ -52,13 +53,16 @@ export class TicketForm {
     if (text){
       formdata.append('text', text)
     }
+     this.isLoading = true;
 
     this.ticketSErvice.sendTicket(formdata).subscribe({
       next: (result: any) => {
         this.ticketResult = result;
+        this.isLoading = false;
       },
       error: (err: any) => {
         console.error(err);
+        this.isLoading = false
       }
     });
   }

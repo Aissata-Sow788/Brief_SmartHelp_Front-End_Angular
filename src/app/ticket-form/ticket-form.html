@@ -27,8 +27,14 @@
           </label>
           <textarea class="form-control" rows="4" formControlName="text" placeholder="Décrivez votre problème..."></textarea>
         </div>
+        <div class="text-center mb-3" *ngIf="isLoading">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Chargement...</span>
+  </div>
+  <p class="mt-2">Analyse en cours...</p>
+</div>
 
-        <button type="button" class="btn btn-primary w-100" (click)="onSubmit()">
+        <button type="button" class="btn btn-primary w-100" (click)="onSubmit()" [disabled]="isLoading">
           <i class="bi bi-send-fill"></i> Envoyer la réclamation
         </button>
 
