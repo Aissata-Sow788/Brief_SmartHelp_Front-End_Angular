@@ -1,0 +1,40 @@
+<div class="container mt-5">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="card-title mb-4 text-primary">
+        <i class="bi bi-envelope-paper-fill"></i> Déposer une réclamation
+      </h2>
+
+      <form [formGroup]="tickeForm">
+
+        <div class="mb-3">
+          <label class="form-label">
+            <i class="bi bi-mic-fill"></i> Note vocale (optionnel)
+          </label>
+          <input type="file" class="form-control" (change)="onAudioSelected($event)" accept="audio/*">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">
+            <i class="bi bi-paperclip"></i> Photo du produit (optionnel)
+          </label>
+          <input type="file" class="form-control" (change)="onImageSelected($event)" accept="image/*">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">
+            <i class="bi bi-pencil-square"></i> Description (optionnel)
+          </label>
+          <textarea class="form-control" rows="4" formControlName="text" placeholder="Décrivez votre problème..."></textarea>
+        </div>
+
+        <button type="button" class="btn btn-primary w-100" (click)="onSubmit()">
+          <i class="bi bi-send-fill"></i> Envoyer la réclamation
+        </button>
+
+        <app-ticket-result [result]="ticketResult"></app-ticket-result>
+
+      </form>
+    </div>
+  </div>
+</div>

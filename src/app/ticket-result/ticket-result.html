@@ -1,0 +1,8 @@
+<div class="mt-4" *ngIf="result">
+  <div class="alert alert-info">
+    <p><strong>Statut proposé :</strong> {{ result.proposed_status }}</p>
+    <p *ngIf="result.transcribed_text"><strong>Texte transcrit :</strong> {{ result.transcribed_text }}</p>
+    <p *ngIf="result.image_diagnosis"><strong>Diagnostic image :</strong> {{ result.image_diagnosis }}</p>
+    <p *ngIf="result.matched_policy"><strong>Règle appliquée :</strong> {{ result.matched_policy }}</p>
+  </div>
+</div>
