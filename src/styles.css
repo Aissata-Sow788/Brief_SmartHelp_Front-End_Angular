@@ -1,1 +1,5 @@
-/* You can add global styles to this file, and also import other style files */
+body {
+  background-color: #0f1216;
+  color: #e9ecef;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}

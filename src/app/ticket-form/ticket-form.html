@@ -1,46 +1,146 @@
-<div class="container mt-5">
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <h2 class="card-title mb-4 text-primary">
-        <i class="bi bi-envelope-paper-fill"></i> Déposer une réclamation
-      </h2>
+<div class="chat-shell d-flex flex-column">
 
-      <form [formGroup]="tickeForm">
+  <!-- HEADER -->
+  <header class="chat-header d-flex align-items-center justify-content-between px-4 py-3">
+    <div class="d-flex align-items-center gap-3">
 
-        <div class="mb-3">
-          <label class="form-label">
-            <i class="bi bi-mic-fill"></i> Note vocale (optionnel)
-          </label>
-          <input type="file" class="form-control" (change)="onAudioSelected($event)" accept="audio/*">
+      <div>
+        <h1 class="brand-title mb-0">
+          <span class="text-white">Smart</span><span class="text-accent">Help</span>
+        </h1>
+        <p class="brand-subtitle mb-0">Assistant IA</p>
+      </div>
+    </div>
+
+    <div class="d-flex align-items-center gap-3">
+      <span class="status-pill d-flex align-items-center gap-2">
+        <span class="status-dot"></span> En ligne
+      </span>
+      <button class="theme-btn" type="button" aria-label="Changer de thème">
+       
+      </button>
+    </div>
+  </header>
+
+  <form [formGroup]="tickeForm" class="d-flex flex-column flex-grow-1">
+
+    <!-- ZONE CENTRALE -->
+    <main class="messages-zone flex-grow-1 px-4 py-4">
+
+      <!-- message d'accueil statique -->
+      <div class="row-msg row-bot">
+        <div class="bot-avatar"><i class="bi bi-person-circle"></i></div>
+        <div class="bubble-wrap">
+          <div class="bubble bubble-bot">
+            <div class="bubble-text">Bonjour ! Décrivez votre problème, ajoutez une photo du produit et/ou un message vocal, puis envoyez votre réclamation.</div>
+          </div>
         </div>
+      </div>
 
-        <div class="mb-3">
-          <label class="form-label">
-            <i class="bi bi-paperclip"></i> Photo du produit (optionnel)
-          </label>
-          <input type="file" class="form-control" (change)="onImageSelected($event)" accept="image/*">
+      <!-- texte envoyé par l'utilisateur -->
+      <div class="row-msg row-user" *ngIf="submittedText()">
+        <div class="bubble-wrap">
+          <div class="bubble bubble-user">
+            <div class="bubble-text">{{ submittedText() }}</div>
+          </div>
         </div>
+      </div>
 
-        <div class="mb-3">
-          <label class="form-label">
-            <i class="bi bi-pencil-square"></i> Description (optionnel)
-          </label>
-          <textarea class="form-control" rows="4" formControlName="text" placeholder="Décrivez votre problème..."></textarea>
+      <!-- aperçu de la note vocale enregistrée / uploadée -->
+      <div class="row-msg row-user" *ngIf="audioPreviewUrl()">
+        <div class="bubble-wrap">
+          <div class="bubble bubble-user">
+            <div class="bubble-text">Message vocal :</div>
+            <div class="attachment-block">
+              <audio controls [src]="audioPreviewUrl()" class="audio-player"></audio>
+            </div>
+          </div>
         </div>
-        <div class="text-center mb-3" *ngIf="isLoading">
-  <div class="spinner-border text-primary" role="status">
-    <span class="visually-hidden">Chargement...</span>
-  </div>
-  <p class="mt-2">Analyse en cours...</p>
-</div>
+      </div>
 
-        <button type="button" class="btn btn-primary w-100" (click)="onSubmit()" [disabled]="isLoading">
-          <i class="bi bi-send-fill"></i> Envoyer la réclamation
+      <!-- aperçu de la photo sélectionnée -->
+      <div class="row-msg row-user" *ngIf="imagePreviewUrl()">
+        <div class="bubble-wrap">
+          <div class="bubble bubble-user">
+            <div class="bubble-text">Photo du produit :</div>
+            <div class="attachment-block">
+              <img [src]="imagePreviewUrl()" class="image-preview" alt="aperçu de la photo">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- erreur d'accès micro -->
+      <div class="mic-error" *ngIf="recordingError()">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ recordingError() }}
+      </div>
+
+      <!-- chargement pendant l'appel API -->
+      <div class="row-msg row-bot" *ngIf="isLoading()">
+        <div class="bot-avatar"><i class="bi bi-robot"></i></div>
+        <div class="bubble-wrap">
+          <div class="bubble bubble-bot">
+            <div class="analysis-card">
+              <div class="analysis-row">
+                <span class="spinner-border spinner-border-sm text-accent me-2"></span>
+                <span class="analysis-label">Analyse de votre réclamation en cours...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- résultat renvoyé par l'API (composant existant, inchangé) -->
+      <div class="row-msg row-bot" *ngIf="ticketResult() && !isLoading()">
+        <div class="bot-avatar"><i class="bi bi-robot"></i></div>
+        <div class="bubble-wrap">
+          <div class="bubble bubble-bot">
+            <div class="bubble-text mb-2">Voici le résultat de mon analyse 👇</div>
+            <app-ticket-result [result]="ticketResult()"></app-ticket-result>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- BARRE DE SAISIE -->
+    <footer class="input-zone px-4 pb-4 pt-2">
+      <div class="input-bar d-flex align-items-center gap-2" [ngClass]="isRecording() ? 'is-recording' : ''">
+
+        <!-- micro : enregistrement vocal réel (toggleRecording de ticket-form.ts) -->
+        <button
+          type="button"
+          class="round-btn mic-btn"
+          [ngClass]="isRecording() ? 'recording' : ''"
+          (click)="toggleRecording()"
+          [attr.aria-label]="isRecording() ? 'Arrêter l’enregistrement' : 'Démarrer un message vocal'">
+          <span class="pulse-ring" *ngIf="isRecording()"></span>
+          <i class="bi" [ngClass]="isRecording() ? 'bi-stop-fill' : 'bi-mic-fill'"></i>
         </button>
 
-        <app-ticket-result [result]="ticketResult"></app-ticket-result>
+        <!-- trombone : sélection d'une photo du produit (onImageSelected de ticket-form.ts) -->
+        <button type="button" class="round-btn attach-btn" (click)="imageInput.click()" aria-label="Joindre une photo">
+          <i class="bi bi-paperclip"></i>
+        </button>
+        <input #imageInput type="file" hidden (change)="onImageSelected($event)" accept="image/*">
 
-      </form>
-    </div>
-  </div>
+        <input
+          type="text"
+          class="text-input flex-grow-1"
+          placeholder="Décrivez votre problème..."
+          formControlName="text">
+
+        <!-- envoyer : appelle onSubmit() de ticket-form.ts -->
+        <button type="button" class="round-btn send-btn" (click)="onSubmit()" [disabled]="isLoading()" aria-label="Envoyer">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </div>
+
+      <p class="footer-note text-center mb-0">
+        <i class="bi bi-lock-fill me-1"></i> Vos données sont sécurisées et confidentielles.
+      </p>
+    </footer>
+
+  </form>
+
 </div>

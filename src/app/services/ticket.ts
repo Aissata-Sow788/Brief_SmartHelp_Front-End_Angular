@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from "rxjs";
+import { TicketResponse } from '../models/ticket-response';
 
 
 @Injectable({
@@ -8,14 +9,16 @@ import { Observable } from "rxjs";
 })
 
 export class TicketService {
+  // URL de l'endpoint FastAPI à contacter
   private urlApi = 'http://127.0.0.1:8000/support-ticket';
 
-  constructor (private http: HttpClient){}
+  ticketResult: TicketResponse | null = null;
+  // Injection de HttpClient, fourni par Angular
+  constructor(private http: HttpClient) {}
 
-  sendTicket(formData: FormData): any{
-    return this.http.post(this.urlApi, formData)
-  }
-
-
+  // Envoie le FormData (audio/image/texte) à l'API et retourne la réponse (TicketResponse)
+sendTicket(formData: FormData): Observable<TicketResponse> {
+  return this.http.post<TicketResponse>(this.urlApi, formData);
+}
 
 }

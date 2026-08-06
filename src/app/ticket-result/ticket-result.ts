@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TicketResponse } from '../models/ticket-response';
 
 @Component({
   selector: 'app-ticket-result',
@@ -8,5 +9,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './ticket-result.css',
 })
 export class TicketResult {
-  @Input() result: any = null;
+    // Reçoit le résultat de l'API depuis le composant parent (TicketForm)
+
+   @Input() result: TicketResponse | null = null;
 }
