@@ -17,7 +17,7 @@
         <span class="status-dot"></span> En ligne
       </span>
       <button class="theme-btn" type="button" aria-label="Changer de thème">
-       
+
       </button>
     </div>
   </header>
@@ -77,7 +77,7 @@
 
       <!-- chargement pendant l'appel API -->
       <div class="row-msg row-bot" *ngIf="isLoading()">
-        <div class="bot-avatar"><i class="bi bi-robot"></i></div>
+        <div class="bot-avatar"></div>
         <div class="bubble-wrap">
           <div class="bubble bubble-bot">
             <div class="analysis-card">
@@ -92,10 +92,10 @@
 
       <!-- résultat renvoyé par l'API (composant existant, inchangé) -->
       <div class="row-msg row-bot" *ngIf="ticketResult() && !isLoading()">
-        <div class="bot-avatar"><i class="bi bi-robot"></i></div>
+        <div class="bot-avatar"></div>
         <div class="bubble-wrap">
           <div class="bubble bubble-bot">
-            <div class="bubble-text mb-2">Voici le résultat de mon analyse 👇</div>
+            <div class="bubble-text mb-2">Voici le résultat de mon analyse </div>
             <app-ticket-result [result]="ticketResult()"></app-ticket-result>
           </div>
         </div>

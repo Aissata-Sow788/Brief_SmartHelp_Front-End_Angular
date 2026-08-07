@@ -14,6 +14,8 @@ import { TicketResponse } from '../models/ticket-response';
 export class TicketForm implements OnDestroy {
 
   // Formulaire réactif : seul le champ texte est vraiment lié au FormGroup.
+  // Les fichiers (audio/image) sont gérés à part, via des variables classiques,
+  // car les <input type="file"> ne se prêtent pas bien au binding réactif standard.
   tickeForm = new FormGroup({
     text: new FormControl('')
   });
@@ -30,6 +32,7 @@ export class TicketForm implements OnDestroy {
   ticketResult = signal<TicketResponse | null>(null);
 
   // Signal qui pilote l'affichage du spinner pendant l'appel à l'API
+  // (true = requête en cours, false = terminé ou pas encore lancé)
   isLoading = signal(false);
 
   // ---------- Enregistrement vocal réel ----------
@@ -51,12 +54,14 @@ export class TicketForm implements OnDestroy {
   submittedText = signal<string | null>(null);
 
   // Objet natif du navigateur qui capture le son pendant l'enregistrement.
+  // private car c'est un détail d'implémentation, le template n'y touche jamais directement.
   private mediaRecorder: MediaRecorder | null = null;
 
   // Accumule les morceaux de son (Blob) envoyés par le MediaRecorder au fil de l'enregistrement
   private audioChunks: Blob[] = [];
 
   // Flux micro obtenu du système. On le garde en mémoire pour pouvoir couper le micro
+  // proprement (getTracks().stop()) une fois l'enregistrement terminé.
   private mediaStream: MediaStream | null = null;
 
   // Injection du service qui communique avec l'API FastAPI (POST /support-ticket)
@@ -174,10 +179,12 @@ export class TicketForm implements OnDestroy {
     const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
 
     // On transforme le blob en File pour réutiliser exactement le même circuit
+    // que l'upload via <input type="file"> (selectaudio -> formdata.append('audio', ...))
     this.selectaudio = new File([audioBlob], 'enregistrement.webm', { type: 'audio/webm' });
     this.audioPreviewUrl.set(URL.createObjectURL(this.selectaudio));
 
     // Coupe le micro : sans ça, le navigateur le laisserait "actif" même
+    // après la fin de l'enregistrement (souvent visible dans l'onglet du navigateur)
     this.mediaStream?.getTracks().forEach(track => track.stop());
     this.mediaStream = null;
   }
@@ -189,6 +196,13 @@ export class TicketForm implements OnDestroy {
    * enregistrement — tout part uniquement au clic sur le bouton d'envoi.
    */
   onSubmit() {
+
+    // Rien à envoyer : ni texte, ni audio, ni image -> on ne fait rien du tout,
+    // pas d'appel API inutile qui reviendrait forcément avec "À vérifier".
+    const hasText = !!this.tickeForm.value.text?.trim();
+    if (!hasText && !this.selectaudio && !this.selectimage) {
+      return;
+    }
 
     const formdata = new FormData();
 
@@ -213,7 +227,15 @@ export class TicketForm implements OnDestroy {
     }
 
     // On vide le champ texte tout de suite, comme dans un chat
+    // (l'utilisateur peut déjà retaper un message pendant que l'analyse tourne)
     this.tickeForm.patchValue({ text: '' });
+
+    // On vide aussi l'audio et l'image utilisés pour l'envoi : sans ça, un second clic
+    // sur "Envoyer" sans rien resélectionner renvoyait encore les anciens fichiers.
+    // On ne touche PAS à audioPreviewUrl/imagePreviewUrl : ils doivent rester affichés
+    // à l'écran comme "message envoyé", même après l'envoi.
+    this.selectaudio = null;
+    this.selectimage = null;
 
 
     // Activation du loader : affiche le spinner dans le template tant que la requête n'est pas terminée
